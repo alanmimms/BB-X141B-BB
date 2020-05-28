@@ -1,0 +1,802 @@
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22
+TABLE OF CONTENTS
+
+     3-    2	TITLE PAGE
+     3-   30	MACRO CALLS AND DEFINITIONS
+     4-   57	ASSORTED DATA - DPB'S
+     5-  122	OTHER RANDOM DATA
+     6-  175	ERROR MESSAGES
+     7-  209	MAIN PROGRAM
+     8-  327	ERROR EXITS
+     9-  361	QIO CALL ROUTINE
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 3
+
+
+      1					.TITLE	UFD - CREATE DIRECTORY FILE
+      2					.SBTTL	TITLE PAGE
+      3
+      4					.IDENT	"V0415"
+      5
+      6					;                             COPYRIGHT (C) 1975, 1978 BY
+      7					;                     DIGITAL EQUIPMENT CORPORATION, MAYNARD MASS.
+      8					;
+      9					;       THIS SOFTWARE IS FURNISHED UNDER A LICENSE AND MAY BE  USED  AND  COPIED
+     10					;       ONLY IN ACCORDANCE WITH THE TERMS OF SUCH LICENSE AND WITH THE INCLUSION
+     11					;       OF THE ABOVE COPYRIGHT NOTICE.  THIS SOFTWARE OR ANY OTHER COPIES THERE-
+     12					;       OF  MAY NOT BE PROVIDED OR OTHERWISE MADE AVAILABLE TO ANY OTHER PERSON.
+     13					;       NO TITLE TO OR OWNERSHIP OF THE SOFTWARE IS HEREBY TRANSFERRED.
+     14					;
+     15					;       THE INFORMATION CONTAINED IN THIS SOFTWARE IS SUBJECT TO CHANGE  WITHOUT
+     16					;       NOTICE  AND SHOULD NOT BE CONSTRUED AS A COMMITMENT BY DIGITAL EQUIPMENT
+     17					;       CORPORATION.
+     18					;
+     19					;       DIGITAL ASSUMES NO RESPONSIBILITY FOR THE  USE  OR  RELIABILITY  OF  ITS
+     20					;       SOFTWARE ON EQUIPMENT WHICH IS NOT SUPPILED BY DIGITAL.
+     21					;
+     22					;
+     23					; ANDREW C. GOLDSTEIN  25 FEB 75  19:13
+     24
+     25		000001 			UFDLUN = 1
+     26		000001 			UFDEFN = 1
+     27		000002 			COLUN = 2
+     28		000002 			COEFN = 2
+     29
+     30					.SBTTL	MACRO CALLS AND DEFINITIONS
+     31
+     32					; MACROS FROM SYSTEM LIBRARY
+     33
+     34						.MCALL	DIR$,GMCR$,GLUN$C,EXIT$S,ALUN$,CALL,RETURN,WTSE$S,NMBLK$
+     35						.MCALL	QIO$,QIO$S,NBOF$L,FDOF$L
+     36						.IIF	NDF,R$$11M	.MCALL	QIOW$
+     37
+     38	000000					FDOF$L
+     39	000000					NBOF$L
+     40
+     41					; MACRO TO CALL QIO ROUTINE
+     42
+     43					.MACRO	QIO	DPB
+     44						JSR	R5,XQIO
+     45						.WORD	DPB
+     46					.ENDM	QIO
+     47
+     48					; MACRO FOR SOB'S
+     49
+     50						.IF	NDF	R$$EIS
+     51					.MACRO	SOB	RX,LABEL
+     52						DEC	RX
+     53						BNE	LABEL
+     54					.ENDM	SOB
+     55						.ENDC
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 4
+ASSORTED DATA - DPB'S
+
+     57					.SBTTL	ASSORTED DATA - DPB'S
+     58
+     59	000000					.PSECT	IMPURE,D
+     60
+     61	000000				GCML:	GMCR$			; GET MCR COMMAND LINE FOR ERROR EXIT ONLY
+     62
+     63					; ASSIGN LUN TO DEVICE
+     64
+     65	000122				ASLUN:	ALUN$	UFDLUN,XX,0
+     66
+     67		000126'			$UDEV==	ASLUN+A.LUNA
+     68		000130'			$UUNIT==ASLUN+A.LUNU
+     69
+     70						.IF	NDF,R$$11M
+     71
+     72					; CREATE NEW DIRECTORY FILE
+     73
+     74	000132				CREATE:	QIOW$	IO.CRE,UFDLUN,UFDEFN,,IOSTAT,,<$FNB,,102400,1,,>
+     75
+     76		000154'			$UDSIZ=	CREATE+Q.IOPL+6
+     77
+     78					; ENTER DIRECTORY IN MFD
+     79
+     80	000162				ENTER:	QIOW$	IO.ENA,UFDLUN,UFDEFN,,IOSTAT,,<,,,,,$FNB>
+     81
+     82					; WRITE ATTRIBUTES TO NEW DIRECTORY
+     83
+     84	000212				WATT:	QIOW$	IO.WAT,UFDLUN,UFDEFN,,IOSTAT,,<$FNB,ATTBLK,,,,>
+     85
+     86					; ERROR RECOVERY
+     87					; REMOVE DIRECTORY FROM MFD ON WRITE ATTRIBUTES FAILURE
+     88
+     89	000242				REMOVE:	QIOW$	IO.RNA,UFDLUN,UFDEFN,,IOSTAT,,<,,,,,$FNB>
+     90
+     91					; DELETE DIRECTORY ON ENTER OR WRITE ATTRIBUTES FAILURE
+     92
+     93	000272				DELET:	QIOW$	IO.DEL,UFDLUN,UFDEFN,,IOSTAT,,<$FNB,,,,,>
+     94
+     95						.IFF
+     96
+     97					; CREATE NEW DIRECTORY FILE
+     98
+     99					CREATE:	QIO$	IO.CRE,UFDLUN,UFDEFN,,IOSTAT,,<$FNB,,102400,1,,>
+    100
+    101					$UDSIZ=	CREATE+Q.IOPL+6
+    102
+    103					; ENTER DIRECTORY IN MFD
+    104
+    105					ENTER:	QIO$	IO.ENA,UFDLUN,UFDEFN,,IOSTAT,,<,,,,,$FNB>
+    106
+    107					; WRITE ATTRIBUTES TO NEW DIRECTORY
+    108
+    109					WATT:	QIO$	IO.WAT,UFDLUN,UFDEFN,,IOSTAT,,<$FNB,ATTBLK,,,,>
+    110
+    111					; ERROR RECOVERY
+    112					; REMOVE DIRECTORY FROM MFD ON WRITE ATTRIBUTES FAILURE
+    113
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 4-1
+ASSORTED DATA - DPB'S
+
+    114					REMOVE:	QIO$	IO.RNA,UFDLUN,UFDEFN,,IOSTAT,,<,,,,,$FNB>
+    115
+    116					; DELETE DIRECTORY ON ENTER OR WRITE ATTRIBUTES FAILURE
+    117
+    118					DELET:	QIO$	IO.DEL,UFDLUN,UFDEFN,,IOSTAT,,<$FNB,,,,,>
+    119
+    120						.ENDC
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 5
+OTHER RANDOM DATA
+
+    122					.SBTTL	OTHER RANDOM DATA
+    123
+    124					; WRITE ATTRIBUTES CONTROL BLOCK
+    125
+    126	000322	   005 	   010 		ATTBLK:	.BYTE	5,10		; FILE NAME AND TYPE
+    127	000324	000374'				.WORD	$FNB+N.FNAM
+    128	000326	   007 	   002 			.BYTE	7,2		; VERSION NUMBER
+    129	000330	000404'				.WORD	$FNB+N.FVER
+    130	000332	   004 	   016 			.BYTE	4,S.FATT	; RECORD ATTRIBUTES
+    131	000334	000350'				.WORD	RECATT
+    132	000336	   001 	   002 			.BYTE	1,2		; FILE OWNER
+    133	000340	000430'				.WORD	$UUIC
+    134	000342	   002 	   002 		$PRFLG::.BYTE	2,2		; FILE PROTECTION
+    135	000344	000432'				.WORD	$UPRO
+    136	000346	000000 				.WORD	0		; END
+    137
+    138					; RECORD ATTRIBUTES
+    139
+    140	000350	   000G	   000 		RECATT:	.BYTE	R.FIX,0
+    141	000352	000020 				.WORD	16.		; RECORD LENGTH
+    142	000354	000000 	000000 			.WORD	0,0		; FILE LENGTH
+    143	000360	000000 	000001 			.WORD	0,1		; END OF FILE VBN
+    144	000364	000000 				.WORD	0		; FIRST FREE BYTE
+    145
+    146					; FILE NAME BLOCK FOR CREATE AND ENTER
+    147
+    148	000366				$FNB::	NMBLK$	,DIR,1
+    149		000412'			. =	$FNB+N.DID
+    150	000412	000004 	000004 	000000 		.WORD	4,4,0
+    151		000424'			. =	$FNB+S.FNB
+    152
+    153					; PROMPT FOR COMMAND INPUT
+    154
+    155	000424	   125 	   106 	   104 	PROMPT:	.ASCII	"UFD>"
+	000427	   076
+    156		000004 			PROMPL = .-PROMPT
+    157
+    158						.EVEN
+    159
+    160					; RANDOM VARIABLES.
+    161
+    162	000430	000000 			$UUIC::	.WORD	0		; FILE OWNER
+    163	000432	000000 			$UPRO::	.WORD	0		; PROTECTION
+    164	000434	000000 			$UALL::	.WORD	0		; RECORDS TO ALLOCATE
+    165	000436	000000 			$UVNAM::.WORD	0		; POINTER TO VOLUME NAME
+    166	000440	000000 			$UVNML::.WORD	0		; CHAR COUNT OF VOLUME LABEL
+    167
+    168	000442	000000 			ERRNUM:	.WORD	0		; ERROR INDEX
+    169	000444				STRING:				; STRING BUFFER
+    170	000444				LUNBUF:	.BLKW	6		; AND BUFFER FOR GET LUN INFO
+    171
+    172	000460				IOSTAT:	.BLKW	2		; I/O STATUS BLOCK
+    173
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 6
+ERROR MESSAGES
+
+    175					.SBTTL	ERROR MESSAGES
+    176
+    177	000000					.PSECT	MSGSTR,D
+    178
+    179					; ERROR MESSAGE INDEX TABLE
+    180
+    181	000000	000026'			ERRMSG:	.WORD	ERRM1
+    182	000002	000073'				.WORD	ERRM2
+    183	000004	000117'				.WORD	ERRM3
+    184	000006	000153'				.WORD	ERRM4
+    185	000010	000206'				.WORD	ERRM5
+    186	000012	000246'				.WORD	ERRM6
+    187	000014	000304'				.WORD	ERRM7
+    188	000016	000346'				.WORD	ERRM8
+    189	000020	000406'				.WORD	ERRM9
+    190	000022	000440'				.WORD	ERRM10
+    191	000024	000502'				.WORD	ERRM11
+    192
+    193					; THE ERROR MESSAGES THEMSELVES
+    194
+    195	000026	   125 	   106 	   104 	ERRM1:	.ASCIZ	"UFD -- CAN'T READ MCR COMMAND BUFFER"
+	000031	   040 	   055 	   055
+	000034	   040 	   103 	   101
+	000037	   116 	   047 	   124
+	000042	   040 	   122 	   105
+	000045	   101 	   104 	   040
+	000050	   115 	   103 	   122
+	000053	   040 	   103 	   117
+	000056	   115 	   115 	   101
+	000061	   116 	   104 	   040
+	000064	   102 	   125 	   106
+	000067	   106 	   105 	   122
+	000072	   000
+    196	000073	   125 	   106 	   104 	ERRM2:	.ASCIZ	"UFD -- SYNTAX ERROR"
+	000076	   040 	   055 	   055
+	000101	   040 	   123 	   131
+	000104	   116 	   124 	   101
+	000107	   130 	   040 	   105
+	000112	   122 	   122 	   117
+	000115	   122 	   000
+    197	000117	   125 	   106 	   104 	ERRM3:	.ASCIZ	"UFD -- DEVICE NOT IN SYSTEM"
+	000122	   040 	   055 	   055
+	000125	   040 	   104 	   105
+	000130	   126 	   111 	   103
+	000133	   105 	   040 	   116
+	000136	   117 	   124 	   040
+	000141	   111 	   116 	   040
+	000144	   123 	   131 	   123
+	000147	   124 	   105 	   115
+	000152	   000
+    198	000153	   125 	   106 	   104 	ERRM4:	.ASCIZ	"UFD -- NOT FILES-11 DEVICE"
+	000156	   040 	   055 	   055
+	000161	   040 	   116 	   117
+	000164	   124 	   040 	   106
+	000167	   111 	   114 	   105
+	000172	   123 	   055 	   061
+	000175	   061 	   040 	   104
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 6-1
+ERROR MESSAGES
+
+	000200	   105 	   126 	   111
+	000203	   103 	   105 	   000
+    199	000206	   125 	   106 	   104 	ERRM5:	.ASCIZ	"UFD -- DIRECTORY ALREADY EXISTS"
+	000211	   040 	   055 	   055
+	000214	   040 	   104 	   111
+	000217	   122 	   105 	   103
+	000222	   124 	   117 	   122
+	000225	   131 	   040 	   101
+	000230	   114 	   122 	   105
+	000233	   101 	   104 	   131
+	000236	   040 	   105 	   130
+	000241	   111 	   123 	   124
+	000244	   123 	   000
+    200	000246	   125 	   106 	   104 	ERRM6:	.ASCIZ	"UFD -- FAILED TO ENTER IN MFD"
+	000251	   040 	   055 	   055
+	000254	   040 	   106 	   101
+	000257	   111 	   114 	   105
+	000262	   104 	   040 	   124
+	000265	   117 	   040 	   105
+	000270	   116 	   124 	   105
+	000273	   122 	   040 	   111
+	000276	   116 	   040 	   115
+	000301	   106 	   104 	   000
+    201	000304	   125 	   106 	   104 	ERRM7:	.ASCIZ	"UFD -- FAILED TO CREATE DIRECTORY"
+	000307	   040 	   055 	   055
+	000312	   040 	   106 	   101
+	000315	   111 	   114 	   105
+	000320	   104 	   040 	   124
+	000323	   117 	   040 	   103
+	000326	   122 	   105 	   101
+	000331	   124 	   105 	   040
+	000334	   104 	   111 	   122
+	000337	   105 	   103 	   124
+	000342	   117 	   122 	   131
+	000345	   000
+    202	000346	   125 	   106 	   104 	ERRM8:	.ASCIZ	"UFD -- WRITE ATTRIBUTES FAILURE"
+	000351	   040 	   055 	   055
+	000354	   040 	   127 	   122
+	000357	   111 	   124 	   105
+	000362	   040 	   101 	   124
+	000365	   124 	   122 	   111
+	000370	   102 	   125 	   124
+	000373	   105 	   123 	   040
+	000376	   106 	   101 	   111
+	000401	   114 	   125 	   122
+	000404	   105 	   000
+    203	000406	   125 	   106 	   104 	ERRM9:	.ASCIZ	"UFD -- VOLUME NOT MOUNTED"
+	000411	   040 	   055 	   055
+	000414	   040 	   126 	   117
+	000417	   114 	   125 	   115
+	000422	   105 	   040 	   116
+	000425	   117 	   124 	   040
+	000430	   115 	   117 	   125
+	000433	   116 	   124 	   105
+	000436	   104 	   000
+    204	000440	   125 	   106 	   104 	ERRM10:	.ASCIZ	"UFD -- PRIVILEGE VIOLATION ON MFD"
+	000443	   040 	   055 	   055
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 6-2
+ERROR MESSAGES
+
+	000446	   040 	   120 	   122
+	000451	   111 	   126 	   111
+	000454	   114 	   105 	   107
+	000457	   105 	   040 	   126
+	000462	   111 	   117 	   114
+	000465	   101 	   124 	   111
+	000470	   117 	   116 	   040
+	000473	   117 	   116 	   040
+	000476	   115 	   106 	   104
+	000501	   000
+    205	000502	   125 	   106 	   104 	ERRM11:	.ASCIZ	"UFD -- ILLEGAL FUNCTION FOR NON-PRIVILEGED TERMINAL"
+	000505	   040 	   055 	   055
+	000510	   040 	   111 	   114
+	000513	   114 	   105 	   107
+	000516	   101 	   114 	   040
+	000521	   106 	   125 	   116
+	000524	   103 	   124 	   111
+	000527	   117 	   116 	   040
+	000532	   106 	   117 	   122
+	000535	   040 	   116 	   117
+	000540	   116 	   055 	   120
+	000543	   122 	   111 	   126
+	000546	   111 	   114 	   105
+	000551	   107 	   105 	   104
+	000554	   040 	   124 	   105
+	000557	   122 	   115 	   111
+	000562	   116 	   101 	   114
+	000565	   000
+    206
+    207						.EVEN
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 7
+MAIN PROGRAM
+
+    209					.SBTTL	MAIN PROGRAM
+    210
+    211					;+
+    212					;
+    213					; *** - $UFD - ENTRY FOR UFD MAIN PROGRAM
+    214					;
+    215					; CREATING A NEW DIRECTORY IS REALLY CRETINOUSLY SIMPLE. WE GET
+    216					; THE COMMAND LINE AND PARSE IT FOR THE NECESSARY INFORMATION
+    217					; AND OPTIONS. THEN WE VERIFY THAT THE DEVICE EXISTS AND WILL
+    218					; TAKE MULTIPLE DIRECTORIES. FINALLY
+    219					; WE CREATE THE DIRECTORY FILE, ENTER IT IN THE VOLUME MFD, AND
+    220					; SET UP THE ATTRIBUTES CORRECTLY. THE WRITE ATTRIBUTES IS DONE
+    221					; LAST TO ENSURE THAT AN ERROR UNWIND FROM AN ENTER FAILURE IS
+    222					; POSSIBLE.
+    223					;
+    224					;-
+    225
+    226
+    227	000000					.PSECT	CODE
+    228
+    229	000000				$UFD::
+    230	000000	005067 	000342'			CLR	$PRFLG		; SET PROTECTION TO DEFAULT
+    231	000004	005067 	000442'			CLR	ERRNUM		; INIT ERROR INDEX
+    232	000010	005067 	000130'			CLR	$UUNIT		; CLEAN OUT UNIT NUMBER
+    233	000014				10$:	CALL	.CKPRV		; CHECK IF INVOKING TERMINAL IS PRIVILEGED
+    234	000020	000406 			PRIVLG::BR	20$			; IGNORE PRIVILEGE CHECK
+    235	000022	103005 				BCC	20$		; YES
+    236	000024					DIR$	#GCML		; PICK UP COMMAND LINE FOR NEATNESS SAKE
+    237	000032	000167 	000326 			JMP	PRIVT		; NO - OUT
+    238	000036	012704 	000424'		20$:	MOV	#PROMPT,R4	; PICK UP PROMPT STRING
+    239	000042	012703 	000004 			MOV	#PROMPL,R3	; AND ITS BYTE COUNT
+    240	000046					CALL	.GTCML		; GO FIND A COMMAND LINE
+    241	000052	005001 				CLR	R1		; SET BLANK SUPPRESSION
+    242	000054	012702 	000000G			MOV	#.UFDKT,R2	; GET KEYWORD TABLE
+    243	000060	012705 	000000G			MOV	#.PSTRT,R5	; GET START STATE FOR PARSER
+    244	000064					CALL	.TPARS		; AND PARSE THE COMMAND LINE
+    245	000070	103002 				BCC	30$
+    246	000072	000167 	000332 			JMP	SYNERR		; SYNTAX ERROR
+    247					;
+    248					; TO AVOID PRIVILEGE PROBLEMS WITH THE MFD, THIS TASK MUST RUN
+    249					; UNDER [1,1]. MAKE IT SO.
+    250					;
+    251	000076	012746 			30$:	MOV	(PC)+,-(SP)
+    252	000100	   006 	   177 			.BYTE	6,177		; PDR FOR 4K ACCESS
+    253	000102	016700 	000000G			MOV	.CRTSK,R0	; GET ATL ADDRESS
+    254
+    255					; ASSIGN THE LUN AND SEE IF THE DEVICE IS SUITABLE
+    256
+    257	000106					DIR$	#ASLUN		; ASSIGN LUN
+    258	000114	103543 				BCS	BADDEV		; DEVICE DOES NOT EXIST
+    259
+    260	000116					GLUN$C	UFDLUN,LUNBUF,CODE ; GET LUN INFORMATION
+    261
+    262						.IF	DF,R$$11M
+    263						BIT	LUNBUF+U.C1,#DV.F11 ; TEST FOR FILES-11 DEVICE
+    264						.IFF
+    265	000124	036727 	000000C	000000G		BIT	LUNBUF+U.C1,#UC.F11 ; TEST FOR FILES-11 DEVICE
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 7-1
+MAIN PROGRAM
+
+    266						.ENDC
+    267	000132	001404 				BEQ	40$
+    268	000134	036727 	000000C	000000C		BIT	LUNBUF+U.C1,#FD.SDI!FD.SQD ; TEST FOR MULTI DIRECTORY DEVICE
+    269	000142	001402 				BEQ	50$
+    270	000144	000167 	000250 		40$:	JMP	NDDEV		; ANYTHING ELSE - OUT
+    271
+    272					; PRODUCE THE UFD FILE NAME FROM THE BINARY UIC
+    273
+    274	000150	012702 	000444'		50$:	MOV	#STRING,R2	; POINT TO STRING BUFFER
+    275	000154	016703 	000430'			MOV	$UUIC,R3	; GET UIC
+    276	000160	012704 	000003 			MOV	#3,R4		; REQUEST NO PUNCTUATION, LEADING ZEROES
+    277	000164					CALL	.PPASC		; CONVERT UIC TO ASCII
+    278
+    279	000170	012705 	000374'			MOV	#$FNB+N.FNAM,R5	; POINT TO FILE NAME AREA
+    280	000174	012700 	000444'			MOV	#STRING,R0	; POINT TO ASCII STRING
+    281	000200					CALL	$CAT5		; CONVERT TO RAD-50
+    282	000204	010125 				MOV	R1,(R5)+	; PUT IN NAME
+    283	000206					CALL	$CAT5		; GET 2ND RAD-50 WORD
+    284	000212	010125 				MOV	R1,(R5)+
+    285
+    286					; COMPUTE NUMBER OF BLOCKS TO ALLOCATE FOR DIRECTORY.
+    287
+    288	000214	016701 	000434'			MOV	$UALL,R1	; GET NUMBER OF ENTRIES TO ALLOCATE
+    289	000220	006201 				ASR	R1		; DIVIDE BY 32. ENTRIES PER BLOCK
+    290	000222	006201 				ASR	R1
+    291	000224	006201 				ASR	R1
+    292	000226	006201 				ASR	R1
+    293	000230	006201 				ASR	R1
+    294	000232	005201 				INC	R1		; ROUND UP
+    295	000234	010167 	000154'			MOV	R1,$UDSIZ	; SET UP SIZE IN CREATE CALL
+    296	000240					QIO	CREATE		; AND CREATE THE FILE
+    297	000246	103441 				BCS	80$
+    298	000250	016767 	000462'	000356'		MOV	IOSTAT+2,RECATT+F.HIBK+2 ; ALSO SET UP RECORD ATTRIBUTES
+    299	000256					QIO	ENTER		; ENTER IN MFD
+    300	000264	103407 				BCS	60$		; ENTER FAILURE
+    301	000266					QIO	WATT		; SET UP FILE ATTRIBUTES
+    302	000274	103417 				BCS	70$
+    303	000276					EXIT$S			; THAT'S ALL, FOLKS!
+    304
+    305					; FAILED TO ENTER DIRECTORY IN MFD
+    306
+    307	000304	116705 	000460'		60$:	MOVB	IOSTAT,R5	; SAVE I/O STATUS
+    308	000310					QIO	DELET		; DELETE THE FILE
+    309	000316	120527 	000000G			CMPB	R5,#IE.DUP	; WAS NAME A DUPLICATE?
+    310	000322	001434 				BEQ	DUPLIC		; YES
+    311	000324	120527 	000000G			CMPB	R5,#IE.PRI	; CHECK FOR PRIVILEGE VIOLATION
+    312	000330	001417 				BEQ	PRIV
+    313	000332	000426 				BR	NENTER		; SOMETHING ELSE
+    314
+    315					; FAILED TO WRITE ATTRIBUTES
+    316
+    317	000334				70$:	QIO	REMOVE		; REMOVE FROM MFD
+    318	000342					QIO	DELET		; DELETE THE FILE
+    319	000350	000413 				BR	WATF
+    320
+    321					; ERROR ON CREATE
+    322
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 7-2
+MAIN PROGRAM
+
+    323	000352	126727 	000460'	000000G	80$:	CMPB	IOSTAT,#IE.SRE	; CHECK FOR SEND/REQUEST FAILURE
+    324	000360	001405 				BEQ	VNMO		; YES - VOLUME NOT MOUNTED
+    325	000362	000410 				BR	NCREAT
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 8
+ERROR EXITS
+
+    327					.SBTTL	ERROR EXITS
+    328
+    329					; BRANCHES TO THE ERROR EXITS BUMP UP AN ERROR INDEX WHICH IS
+    330					; USED TO LOCATE THE APPROPRIATE ERROR MESSAGE. THE MESSAGE IS
+    331					; OUTPUT TO "TI".
+    332
+    333
+    334	000364	005267 	000442'		PRIVT:	INC	ERRNUM		; TERMINAL NOT PRIVILEGED
+    335	000370	005267 	000442'		PRIV:	INC	ERRNUM		; PRIVILEGE VIOLATION ON MFD
+    336	000374	005267 	000442'		VNMO:	INC	ERRNUM		; VOLUME NOT MOUNTED
+    337	000400	005267 	000442'		WATF:	INC	ERRNUM		; WRITE ATTRIBUTES FAILURE
+    338	000404	005267 	000442'		NCREAT:	INC	ERRNUM		; FAILED TO CREATE
+    339	000410	005267 	000442'		NENTER:	INC	ERRNUM		; FAILED TO ENTER IN MFD
+    340	000414	005267 	000442'		DUPLIC:	INC	ERRNUM		; DUPLICATE DIRECTORY
+    341	000420	005267 	000442'		NDDEV:	INC	ERRNUM		; NOT A DIRECTORY DEVICE
+    342	000424	005267 	000442'		BADDEV:	INC	ERRNUM		; BAD DEVICE NAME
+    343	000430				.SYNER::
+    344	000430	005267 	000442'		SYNERR:	INC	ERRNUM		; SYNTAX ERROR
+    345	000434				CMLERR:				; COMMAND LINE I/O ERROR
+    346	000434	016700 	000442'			MOV	ERRNUM,R0	; GET ERROR INDEX
+    347	000440	006300 				ASL	R0
+    348	000442	016000 	000000'			MOV	ERRMSG(R0),R0	; GET ERROR MESSAGE ADDR
+    349	000446	010001 				MOV	R0,R1
+    350	000450	105721 			10$:	TSTB	(R1)+		; LOOK FOR THE TERMINATOR
+    351	000452	001401 				BEQ	20$
+    352	000454	000775 				BR	10$
+    353	000456	160001 			20$:	SUB	R0,R1		; COMPUTE CHARACTER COUNT
+    354
+    355	000460					QIO$S	#IO.WVB,#COLUN,#COEFN,,,,<R0,R1,<#' >>
+    356	000520	103405 				BCS	30$
+    357	000522					WTSE$S	#COEFN		; WAIT FOR MESSAGE
+    358	000534				30$:	EXIT$S
+    359
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 9
+QIO CALL ROUTINE
+
+    361					.SBTTL	QIO CALL ROUTINE
+    362
+    363					;+
+    364					;
+    365					; CALL:	JSR	R5,XQIO
+    366					;	.WORD	DPB
+    367					;	(RETURN)
+    368					;
+    369					;-
+    370
+    371
+    372	000542				XQIO:	DIR$	(R5)+		; DO IT
+    373	000546	103404 				BCS	1$		; CHECK FOR DIRECTIVE ERROR
+    374
+    375						.IF	DF	R$$11M
+    376						WTSE$S	#UFDEFN		; WAIT FOR COMPLETION
+    377						.ENDC
+    378
+    379	000550	105767 	000460'			TSTB	IOSTAT		; CHECK FOR I/O ERROR
+    380	000554	003001 				BGT	1$
+    381	000556	000261 				SEC			; SET CARRY ON ERROR
+    382	000560	000205 			1$:	RTS	R5
+    383
+    384
+    385
+    386		000000'				.END	$UFD
+UFD - CREATE DIRECTORY FILE	MACRO M1113  14-APR-81 11:22  PAGE 9-1
+SYMBOL TABLE
+
+ASLUN   000122R     002	F.BKDN= 000026   	F.STBK= 000036   	N.NEXT= 000022   	U.C1  = ****** GX
+ATTBLK  000322R     002	F.BKDS= 000020   	F.UNIT= 000136   	N.STAT= 000020   	VNMO    000374R     004
+A.LULU= 000002   	F.BKEF= 000050   	F.URBD= 000020   	N.UNIT= 000034   	WATF    000400R     004
+A.LUNA= 000004   	F.BKP1= 000051   	F.VBN = 000064   	PRIV    000370R     004	WATT    000212R     002
+A.LUNU= 000006   	F.BKST= 000024   	F.VBSZ= 000060   	PRIVLG  000020RG    004	XQIO    000542R     004
+BADDEV  000424R     004	F.BKVB= 000064   	GCML    000000R     002	PRIVT   000364R     004	$CAT5 = ****** GX
+CMLERR  000434R     004	F.CNTG= 000034   	G.LUBA= 000004   	PROMPL= 000004   	$FNB    000366RG    002
+COEFN = 000002   	F.DFNB= 000046   	G.LUCW= 000004   	PROMPT  000424R     002	$PRFLG  000342RG    002
+COLUN = 000002   	F.DSPT= 000044   	G.LUFB= 000003   	Q.IOAE= 000012   	$UALL   000434RG    002
+CREATE  000132R     002	F.DVNM= 000134   	G.LULU= 000002   	Q.IOEF= 000006   	$UDEV = 000126RG    002
+DELET   000272R     002	F.EFBK= 000010   	G.LUNA= 000000   	Q.IOFN= 000002   	$UDSIZ= 000154R     002
+DUPLIC  000414R     004	F.EFN = 000050   	G.LUNU= 000002   	Q.IOLU= 000004   	$UFD    000000RG    004
+ENTER   000162R     002	F.EOBB= 000032   	G.MCRB= 000002   	Q.IOPL= 000014   	$UPRO   000432RG    002
+ERRMSG  000000R     003	F.ERR = 000052   	IE.DUP= ****** GX	Q.IOPR= 000007   	$UUIC   000430RG    002
+ERRM1   000026R     003	F.FACC= 000043   	IE.PRI= ****** GX	Q.IOSB= 000010   	$UUNIT= 000130RG    002
+ERRM10  000440R     003	F.FFBY= 000014   	IE.SRE= ****** GX	RECATT  000350R     002	$UVNAM  000436RG    002
+ERRM11  000502R     003	F.FNAM= 000110   	IOSTAT  000460R     002	REMOVE  000242R     002	$UVNML  000440RG    002
+ERRM2   000073R     003	F.FNB = 000102   	IO.CRE= ****** GX	R$$10F= 000001   	$$    = 000067
+ERRM3   000117R     003	F.FTYP= 000116   	IO.DEL= ****** GX	R$$11D= 000001   	$$$   = 000000R     005
+ERRM4   000153R     003	F.FVER= 000120   	IO.ENA= ****** GX	R$$20F= 000001   	$$$ARG= 000003
+ERRM5   000206R     003	F.HIBK= 000004   	IO.RNA= ****** GX	R.FIX = ****** GX	$$$OST= 000006
+ERRM6   000246R     003	F.LUN = 000042   	IO.WAT= ****** GX	STRING  000444R     002	$$$T1 = 000011
+ERRM7   000304R     003	F.MBCT= 000054   	IO.WVB= ****** GX	SYNERR  000430R     004	.CKPRV= ****** GX
+ERRM8   000346R     003	F.MBC1= 000055   	LUNBUF  000444R     002	S.FATT= 000016   	.CRTSK= ****** GX
+ERRM9   000406R     003	F.MBFG= 000056   	M$$HDR= 000001   	S.FDB = 000140   	.GTCML= ****** GX
+ERRNUM  000442R     002	F.NRBD= 000024   	NCREAT  000404R     004	S.FNAM= 000006   	.PPASC= ****** GX
+E$$MSG= 000001   	F.NREC= 000030   	NDDEV   000420R     004	S.FNB = 000036   	.PSTRT= ****** GX
+E$$TRP= 000001   	F.OVBS= 000030   	NENTER  000410R     004	S.FNBW= 000017   	.SYNER  000430RG    004
+FD.SDI= ****** GX	F.RACC= 000016   	N.DID = 000024   	S.FNTY= 000004   	.TPARS= ****** GX
+FD.SQD= ****** GX	F.RATT= 000001   	N.DVNM= 000032   	S.FTYP= 000002   	.UFDKT= ****** GX
+F$$LVL= 000001   	F.RCNM= 000034   	N.FID = 000000   	S.NFEN= 000020   	...PC1= 000000
+F.ALOC= 000040   	F.RCTL= 000017   	N.FNAM= 000006   	UC.F11= ****** GX	...PC2= 000404R     002
+F.BBFS= 000062   	F.RSIZ= 000002   	N.FTYP= 000014   	UFDEFN= 000001   	...PC3= 000000
+F.BDB = 000070   	F.RTYP= 000000   	N.FVER= 000016   	UFDLUN= 000001   	...TPC= 000140
+F.BGBC= 000057
+
+. ABS.	000000	   000
+      	000000	   001
+IMPURE	000464	   002
+MSGSTR	000566	   003
+CODE  	000562	   004
+$DPB$$	000006	   005
+ERRORS DETECTED:  0
+
+VIRTUAL MEMORY USED:  3943 WORDS  ( 16 PAGES)
+DYNAMIC MEMORY:  4630 WORDS  ( 17 PAGES)
+ELAPSED TIME:  00:00:26
+[53,10]UFD,[53,20]UFD/-SP/CR=[53,30]RSXDC,UFD
+UFD        CREATED BY  MACRO  ON 14-APR-81 AT 11:22	PAGE 1
+
+SYMBOL CROSS REFERENCE                                  CREF         
+
+SYMBOL	VALUE		REFERENCES
+
+ASLUN 	  000122 R	#4-65       4-67       4-68       7-257     
+ATTBLK	  000322 R	 4-84      #5-126     
+A.LULU	= 000002	#4-65      
+A.LUNA	= 000004	#4-65       4-67      
+A.LUNU	= 000006	#4-65       4-68      
+BADDEV	  000424 R	 7-258     #8-342     
+CMLERR	  000434 R	#8-345     
+COEFN 	= 000002	#3-28       8-355      8-357     
+COLUN 	= 000002	#3-27       8-355     
+CREATE	  000132 R	#4-74       4-76       7-296     
+DELET 	  000272 R	#4-93       7-308      7-318     
+DUPLIC	  000414 R	 7-310     #8-340     
+ENTER 	  000162 R	#4-80       7-299     
+ERRMSG	  000000 R	#6-181      8-348     
+ERRM1 	  000026 R	 6-181     #6-195     
+ERRM10	  000440 R	 6-190     #6-204     
+ERRM11	  000502 R	 6-191     #6-205     
+ERRM2 	  000073 R	 6-182     #6-196     
+ERRM3 	  000117 R	 6-183     #6-197     
+ERRM4 	  000153 R	 6-184     #6-198     
+ERRM5 	  000206 R	 6-185     #6-199     
+ERRM6 	  000246 R	 6-186     #6-200     
+ERRM7 	  000304 R	 6-187     #6-201     
+ERRM8 	  000346 R	 6-188     #6-202     
+ERRM9 	  000406 R	 6-189     #6-203     
+ERRNUM	  000442 R	#5-168     *7-231     *8-334     *8-335     *8-336     *8-337     *8-338     *8-339     *8-340     
+                        *8-341     *8-342     *8-344      8-346     
+E$$MSG	= 000001	#1-33      
+E$$TRP	= 000001	#1-32      
+FD.SDI	= ******  GX	 7-268     
+FD.SQD	= ******  GX	 7-268     
+F$$LVL	= 000001	#1-28      
+F.HIBK	= 000004	*7-298     
+GCML  	  000000 R	#4-61       7-236     
+G.LUBA	= 000004	#7-260     
+G.LULU	= 000002	#7-260     
+G.LUNA	= 000000	 7-260     
+G.MCRB	= 000002	#4-61      
+IE.DUP	= ******  GX	 7-309     
+IE.PRI	= ******  GX	 7-311     
+IE.SRE	= ******  GX	 7-323     
+IOSTAT	  000460 R	 4-74       4-80       4-84       4-89       4-93      #5-172      7-298      7-307      7-323     
+                         9-379     
+IO.CRE	= ******  GX	 4-74      
+IO.DEL	= ******  GX	 4-93      
+IO.ENA	= ******  GX	 4-80      
+IO.RNA	= ******  GX	 4-89      
+IO.WAT	= ******  GX	 4-84      
+IO.WVB	= ******  GX	 8-355     
+LUNBUF	  000444 R	#5-170      7-260      7-265      7-268     
+M$$HDR	= 000001	#1-34      
+NCREAT	  000404 R	 7-325     #8-338     
+UFD        CREATED BY  MACRO  ON 14-APR-81 AT 11:22	PAGE 2
+
+SYMBOL CROSS REFERENCE                                  CREF         
+
+SYMBOL	VALUE		REFERENCES
+
+NDDEV 	  000420 R	 7-270     #8-341     
+NENTER	  000410 R	 7-313     #8-339     
+N.DID 	= 000024	 5-149     
+N.FNAM	= 000006	 5-127      5-148      7-279     
+N.FTYP	= 000014	 5-148     
+N.FVER	= 000016	 5-129      5-148     
+PRIV  	  000370 R	 7-312     #8-335     
+PRIVLG	  000020 RG	#7-234     
+PRIVT 	  000364 R	 7-237     #8-334     
+PROMPL	= 000004	#5-156      7-239     
+PROMPT	  000424 R	#5-155      5-156      7-238     
+Q.IOAE	= 000012	#4-74      #4-80      #4-84      #4-89      #4-93      
+Q.IOEF	= 000006	#4-74      #4-80      #4-84      #4-89      #4-93      
+Q.IOFN	= 000002	#4-74      #4-80      #4-84      #4-89      #4-93      
+Q.IOLU	= 000004	#4-74      #4-80      #4-84      #4-89      #4-93      
+Q.IOPL	= 000014	#4-74       4-76      #4-80      #4-84      #4-89      #4-93      
+Q.IOPR	= 000007	#4-74      #4-80      #4-84      #4-89      #4-93      
+Q.IOSB	= 000010	#4-74      #4-80      #4-84      #4-89      #4-93      
+RECATT	  000350 R	 5-131     #5-140     *7-298     
+REMOVE	  000242 R	#4-89       7-317     
+R$$EIS	= ******	 3-50      
+R$$10F	= 000001	#1-30      
+R$$11D	= 000001	#1-29      
+R$$11M	= ******	 3-36       4-70       7-262      9-375     
+R$$20F	= 000001	#1-31      
+R.FIX 	= ******  GX	 5-140     
+STRING	  000444 R	#5-169      7-274      7-280     
+SYNERR	  000430 R	 7-246     #8-344     
+S$$YDF	= ******	 1-1        1-37      
+S.FATT	= 000016	 5-130     
+S.FNAM	= 000006	 5-148      5-148     
+S.FNB 	= 000036	 5-148      5-151     
+S.FTYP	= 000002	 5-148      5-148     
+UC.F11	= ******  GX	 7-265     
+UFDEFN	= 000001	#3-26       4-74       4-80       4-84       4-89       4-93      
+UFDLUN	= 000001	#3-25       4-65       4-74       4-80       4-84       4-89       4-93       7-260     
+U.C1  	= ******  GX	 7-265      7-268     
+VNMO  	  000374 R	 7-324     #8-336     
+WATF  	  000400 R	 7-319     #8-337     
+WATT  	  000212 R	#4-84       7-301     
+XQIO  	  000542 R	 7-296      7-299      7-301      7-308      7-317      7-318     #9-372     
+$CAT5 	= ******  GX	 7-281      7-281      7-283      7-283     
+$FNB  	  000366 RG	 4-74       4-80       4-84       4-89       4-93       5-127      5-129     #5-148      5-149     
+                         5-151      7-279     
+$PRFLG	  000342 RG	#5-134     *7-230     
+$UALL 	  000434 RG	#5-164      7-288     
+$UDEV 	= 000126 RG	#4-67      
+$UDSIZ	= 000154 R	#4-76      *7-295     
+$UFD  	  000000 RG	#7-229      9-386     
+$UPRO 	  000432 RG	 5-135     #5-163     
+$UUIC 	  000430 RG	 5-133     #5-162      7-275     
+$UUNIT	= 000130 RG	#4-68      *7-232     
+UFD        CREATED BY  MACRO  ON 14-APR-81 AT 11:22	PAGE 3
+
+SYMBOL CROSS REFERENCE                                  CREF         
+
+SYMBOL	VALUE		REFERENCES
+
+$UVNAM	  000436 RG	#5-165     
+$UVNML	  000440 RG	#5-166     
+$$    	= 000067	#7-233      7-233     #7-240      7-240     #7-244      7-244     #7-277      7-277     #7-281     
+                         7-281     #7-283      7-283     
+$$$   	= 000000 R	#7-260      7-260     
+$$$ARG	= 000003	#4-65       4-65      #4-65       4-65      #4-65       4-65      #4-74       4-74      #4-74      
+                         4-74      #4-74       4-74      #4-74       4-74      #4-74       4-74      #4-74       4-74      
+                        #4-74       4-74      #4-80       4-80      #4-80       4-80      #4-80       4-80      #4-80      
+                         4-80      #4-80       4-80      #4-80       4-80      #4-80       4-80      #4-84       4-84      
+                        #4-84       4-84      #4-84       4-84      #4-84       4-84      #4-84       4-84      #4-84      
+                         4-84      #4-84       4-84      #4-89       4-89      #4-89       4-89      #4-89       4-89      
+                        #4-89       4-89      #4-89       4-89      #4-89       4-89      #4-89       4-89      #4-93      
+                         4-93      #4-93       4-93      #4-93       4-93      #4-93       4-93      #4-93       4-93      
+                        #4-93       4-93      #4-93       4-93      #8-355      8-355      8-355      8-355      8-355     
+                         8-355      8-355      8-355      8-355      8-355      8-355      8-355     
+$$$GLB	= ******	 4-61       4-61       4-65       4-65       4-65       4-65       4-74       4-74       4-74      
+                         4-74       4-74       4-74       4-74       4-74       4-80       4-80       4-80       4-80      
+                         4-80       4-80       4-80       4-80       4-84       4-84       4-84       4-84       4-84      
+                         4-84       4-84       4-84       4-89       4-89       4-89       4-89       4-89       4-89      
+                         4-89       4-89       4-93       4-93       4-93       4-93       4-93       4-93       4-93      
+                         4-93       7-260      7-260      7-260      7-260     
+$$$OST	= 000006	#4-61       4-61       4-61      #4-61      #4-65       4-65       4-65      #4-65       4-65      
+                         4-65      #4-65       4-65       4-65      #4-65      #4-74       4-74       4-74      #4-74      
+                         4-74       4-74      #4-74       4-74       4-74      #4-74       4-74       4-74      #4-74      
+                         4-74       4-74      #4-74       4-74       4-74      #4-74       4-74      #4-80       4-80      
+                         4-80      #4-80       4-80       4-80      #4-80       4-80       4-80      #4-80       4-80      
+                         4-80      #4-80       4-80       4-80      #4-80       4-80       4-80      #4-80       4-80      
+                        #4-84       4-84       4-84      #4-84       4-84       4-84      #4-84       4-84       4-84      
+                        #4-84       4-84       4-84      #4-84       4-84       4-84      #4-84       4-84       4-84      
+                        #4-84       4-84      #4-89       4-89       4-89      #4-89       4-89       4-89      #4-89      
+                         4-89       4-89      #4-89       4-89       4-89      #4-89       4-89       4-89      #4-89      
+                         4-89       4-89      #4-89       4-89      #4-93       4-93       4-93      #4-93       4-93      
+                         4-93      #4-93       4-93       4-93      #4-93       4-93       4-93      #4-93       4-93      
+                         4-93      #4-93       4-93       4-93      #4-93       4-93      #7-260      7-260      7-260     
+                        #7-260      7-260      7-260     #7-260     
+$$$T1 	= 000011	#4-65       4-65       4-65      #4-65       4-65       4-65      #4-65       4-65       4-65      
+                        #8-355      8-355     
+.CKPRV	= ******  GX	 7-233      7-233     
+.CRTSK	= ******  GX	 7-253     
+.GTCML	= ******  GX	 7-240      7-240     
+.PPASC	= ******  GX	 7-277      7-277     
+.PSTRT	= ******  GX	 7-243     
+.SYNER	  000430 RG	#8-343     
+.TPARS	= ******  GX	 7-244      7-244     
+.UFDKT	= ******  GX	 7-242     
+...PC1	= 000000 R	 5-148      5-148     #5-148      5-148      5-148      5-148      5-148     #5-148     
+...PC2	= 000404 R	#5-148      5-148      5-148     #5-148      5-148      5-148     #5-148      5-148     
+...PC3	= 000000	#5-148      5-148     
+UFD        CREATED BY  MACRO  ON 14-APR-81 AT 11:22	PAGE 4
+
+MACRO CROSS REFERENCE                                   CREF         
+
+MACRO NAME	REFERENCES
+
+ALUN$ 		#3-34      #4-65      
+CALL  		#3-34      #7-233     #7-240     #7-244     #7-277     #7-281     #7-283     
+CWORD$		#5-148     #5-148     #5-148     
+DIR$  		#3-34      #7-236     #7-257     #7-260     #7-260     #7-303     #7-303     #8-355     #8-355     #8-357     
+                #8-357     #8-358     #8-358     #9-372     
+ERR$  		#7-236     #7-257     #7-260     #7-303     #8-355     #8-357     #8-358     #9-372     
+EXIT$S		#3-34       7-303      8-358     
+FDOFF$		#3-38      #3-38      
+FDOF$L		#3-35      #3-38      
+GLUN$ 		#7-260     #7-260     
+GLUN$C		#3-34       7-260     
+GMCR$ 		#3-34       4-61      
+MOV$  		#8-355     #8-355     #8-355     #8-355     #8-355     #8-355     #8-355     #8-355     #8-355     #8-357     
+                #8-357     
+MVB$  		#8-355     #8-355     
+NBL$  		#4-65       4-65      
+NBOFF$		#3-39      #3-39      #5-148     #5-148     
+NBOF$L		#3-35      #3-39      
+NMBLK$		#3-34      #5-148     
+OFF$  		#4-61      #4-61      #4-61      #4-65      #4-65      #4-65      #4-65      #4-65      #4-74      #4-74      
+                #4-74      #4-74      #4-74      #4-74      #4-74      #4-74      #4-74      #4-80      #4-80      #4-80      
+                #4-80      #4-80      #4-80      #4-80      #4-80      #4-80      #4-84      #4-84      #4-84      #4-84      
+                #4-84      #4-84      #4-84      #4-84      #4-84      #4-89      #4-89      #4-89      #4-89      #4-89      
+                #4-89      #4-89      #4-89      #4-89      #4-93      #4-93      #4-93      #4-93      #4-93      #4-93      
+                #4-93      #4-93      #4-93      #7-260     #7-260     #7-260     #7-260     
+QDPB$ 		#4-74       4-74      #4-80       4-80      #4-84       4-84      #4-89       4-89      #4-93       4-93      
+QDPB$S		#8-355      8-355     
+QIO   		#3-43      #7-296     #7-299     #7-301     #7-308     #7-317     #7-318     
+QIOW$ 		#3-36      #4-74      #4-80      #4-84      #4-89      #4-93      
+QIO$  		#3-35      
+QIO$S 		#3-35       8-355     
+RAD50$		#5-148     #5-148     #5-148     
+RETURN		#3-34      
+RVP$  		#8-355      8-355     
+SOB   		#3-51      
+WTSE$S		#3-34      #8-357     

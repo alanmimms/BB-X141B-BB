@@ -1,0 +1,118 @@
+  Read Density:1600  Parity:Odd  9-Track  Write enabled  REELID:RSX
+
+  BACKUP reel number 1; start save set: RSX20F DOCUMENTATION
+    by version 4A(521) at 15:44:38 on 10-Apr-86
+    written on MTD260: on S/N 1026 at 1600 9-track
+    under TOPS-10 system 703A(31073): RN302B DEC10 Development
+
+RSX20F	DIR    10  <***>   734427  10-Apr-86
+RSX20F	MEM   106  <***>   624237  10-Apr-86
+  Total of 116 blocks in 2 files Checksum = 447633
+
+  BACKUP reel number 1; end save set: RSX20F DOCUMENTATION
+    by version 4A(521) at 15:44:40 on 10-Apr-86
+    written on MTD260: on S/N 1026 at 1600 9-track
+    under TOPS-10 system 703A(31073): RN302B DEC10 Development
+
+
+  BACKUP reel number 1; start save set: RSX20F LISTINGS
+    by version 4A(521) at 15:44:41 on 10-Apr-86
+    written on MTD260: on S/N 1026 at 1600 9-track
+    under TOPS-10 system 703A(31073): RN302B DEC10 Development
+
+BOOT	LST    58  <***>   526301   9-Apr-86	(6)
+BOOT	M10    51  <***>   017550   9-Apr-86	(1)
+BOOT	M20    51  <***>   415767   9-Apr-86	(1)
+BOOT	M91    51  <***>   375265   9-Apr-86	(1)
+COPY	LST   104  <***>   324574   9-Apr-86	(7)
+COPY	MAP     3  <***>   622440   9-Apr-86	(1)
+DMOUNT	M10     4  <***>   227154   9-Apr-86	(1)
+DMOUNT	M20     4  <***>   762724   9-Apr-86	(1)
+DMOUNT	M91     4  <***>   447364   9-Apr-86	(1)
+DRIVER	L10   552  <***>   313223   9-Apr-86	(1)
+DRIVER	L20   565  <***>   675313   9-Apr-86	(1)
+DRIVER	L91   565  <***>   660130   9-Apr-86	(1)
+F11ACP	M10   256  <***>   374531   9-Apr-86	(1)
+F11ACP	M20   256  <***>   622221   9-Apr-86	(1)
+F11ACP	M91   256  <***>   127022   9-Apr-86	(1)
+INIT	LST   478  <***>   540243   9-Apr-86	(1)
+INIT	M10    17  <***>   471713   9-Apr-86	(1)
+INIT	M20    17  <***>   076201   9-Apr-86	(1)
+INIT	M91    17  <***>   176266   9-Apr-86	(1)
+KLDISC	LST    41  <***>   637477   9-Apr-86	(5)
+KLDISC	M10     5  <***>   760711   9-Apr-86	(1)
+KLDISC	M20     5  <***>   233421   9-Apr-86	(1)
+KLDISC	M91     5  <***>   545422   9-Apr-86	(1)
+KLINIT	L10  1239  <***>   772432   9-Apr-86	(1)
+KLINIT	L20  1238  <***>   425353   9-Apr-86	(1)
+KLINIT	L91  1239  <***>   370771   9-Apr-86	(1)
+KLINIT	M10   172  <***>   377311   9-Apr-86	(1)
+KLINIT	M20   173  <***>   622132   9-Apr-86	(1)
+KLINIT	M91   173  <***>   750244   9-Apr-86	(1)
+KLRING	L10    84  <***>   232252   9-Apr-86	(1)
+KLRING	L20    84  <***>   064733   9-Apr-86	(1)
+KLRING	L91    84  <***>   606750   9-Apr-86	(1)
+KLRING	M10     6  <***>   647123   9-Apr-86	(1)
+KLRING	M20     6  <***>   000250   9-Apr-86	(1)
+KLRING	M91     6  <***>   770054   9-Apr-86	(1)
+LOGXFR	L10   138  <***>   302400   9-Apr-86	(1)
+LOGXFR	L20   140  <***>   066502   9-Apr-86	(1)
+LOGXFR	L91   138  <***>   356251   9-Apr-86	(1)
+LOGXFR	M10     8  <***>   045172   9-Apr-86	(1)
+LOGXFR	M20     8  <***>   514573   9-Apr-86	(1)
+LOGXFR	M91     8  <***>   045441   9-Apr-86	(1)
+MIDNIT	LST    11  <***>   434652   9-Apr-86	(10)
+MIDNIT	M10     3  <***>   306700   9-Apr-86	(1)
+MIDNIT	M20     3  <***>   534704   9-Apr-86	(1)
+MIDNIT	M91     3  <***>   631614   9-Apr-86	(1)
+MOUNT	LST    59  <***>   712525   9-Apr-86	(13)
+MOUNT	M10     4  <***>   315323   9-Apr-86	(1)
+MOUNT	M20     4  <***>   024154   9-Apr-86	(1)
+MOUNT	M91     4  <***>   022322   9-Apr-86	(1)
+PARSER	LST  2167  <***>   173720   9-Apr-86	(1)
+PARSER	M10   194  <***>   372275   9-Apr-86	(1)
+PARSER	M20   194  <***>   063662   9-Apr-86	(1)
+PARSER	M91   194  <***>   073352   9-Apr-86	(1)
+PIP	LST    63  <***>   124055   9-Apr-86	(10)
+PIP	MAP   106  <***>   516704   9-Apr-86	(1)
+RED	LST    63  <***>   033126   9-Apr-86	(11)
+RED	M10     2  <***>   251207   9-Apr-86	(1)
+RED	M20     2  <***>   124311   9-Apr-86	(1)
+RED	M91     2  <***>   662273   9-Apr-86	(1)
+RSX20F	M10   121  <***>   431045   9-Apr-86	(1)
+RSX20F	M20   122  <***>   303231   9-Apr-86	(1)
+RSX20F	M91   122  <***>   424557   9-Apr-86	(1)
+RSXT10	L10  1672  <***>   273447   9-Apr-86	(1)
+RSXT20	L20  1672  <***>   670554   9-Apr-86	(1)
+RSXT91	L91  1672  <***>   163273   9-Apr-86	(1)
+SAVE	LST   483  <***>   610453   9-Apr-86	(124)
+SAVE	M10    10  <***>   057720   9-Apr-86	(1)
+SAVE	M20    10  <***>   357051   9-Apr-86	(1)
+SAVE	M91    10  <***>   202055   9-Apr-86	(1)
+SETSPD	LST    70  <***>   470267   9-Apr-86	(27)
+SETSPD	M10     6  <***>   116603   9-Apr-86	(1)
+SETSPD	M20     6  <***>   477337   9-Apr-86	(1)
+SETSPD	M91     6  <***>   616572   9-Apr-86	(1)
+T20ACP	LST   114  <***>   044523   9-Apr-86	(4)
+T20ACP	M10     4  <***>   045015   9-Apr-86	(1)
+T20ACP	M20     4  <***>   147444   9-Apr-86	(1)
+T20ACP	M91     4  <***>   140766   9-Apr-86	(1)
+TKTN	L10    80  <***>   004537   9-Apr-86	(1)
+TKTN	L20    80  <***>   502216   9-Apr-86	(1)
+TKTN	L91    80  <***>   145502   9-Apr-86	(1)
+TKTN	M10     8  <***>   114177   9-Apr-86	(1)
+TKTN	M20     7  <***>   236406   9-Apr-86	(1)
+TKTN	M91     8  <***>   152771   9-Apr-86	(1)
+UFD	LST    58  <***>   601665   9-Apr-86	(1)
+UFD	M10    19  <***>   353311   9-Apr-86	(1)
+UFD	M20    19  <***>   541264   9-Apr-86	(1)
+UFD	M91    19  <***>   662555   9-Apr-86	(1)
+ZAP	LST    43  <***>   340117   9-Apr-86	(4)
+ZAP	MAP    62  <***>   110111   9-Apr-86	(1)
+  Total of 17978 blocks in 89 files Checksum = 336057
+
+  BACKUP reel number 1; end save set: RSX20F LISTINGS
+    by version 4A(521) at 15:51:59 on 10-Apr-86
+    written on MTD260: on S/N 1026 at 1600 9-track
+    under TOPS-10 system 703A(31073): RN302B DEC10 Development
+
